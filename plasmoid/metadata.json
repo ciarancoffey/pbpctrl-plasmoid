@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "github@ccoffey.ie",
+                "Name": "Ciarán Coffey"
+            }
+        ],
+        "Category": "Hardware",
+        "Description": "Control Google Pixel Buds Pro from the system tray",
+        "Icon": "audio-headphones",
+        "Id": "com.github.ciarancoffey.pbpctrl-plasmoid",
+        "License": "MIT",
+        "Name": "Pixel Buds Pro Control",
+        "Version": "0.1.0",
+        "Website": "https://github.com/ciarancoffey/pbpctrl-plasmoid"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-StandAloneApp": false
+}
