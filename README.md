@@ -32,6 +32,18 @@ paru -S libfdk-aac liblc3 libfreeaptx libldac opus
 
 ## Installation
 
+### AUR (Arch Linux)
+
+```sh
+paru -S pbpctrl-plasmoid
+```
+
+Or for the latest git version:
+
+```sh
+paru -S pbpctrl-plasmoid-git
+```
+
 ### From source (Arch Linux)
 
 ```sh
