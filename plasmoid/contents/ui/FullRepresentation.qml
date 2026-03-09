@@ -165,5 +165,77 @@ ColumnLayout {
         }
     }
 
+    Kirigami.Separator { Layout.fillWidth: true; visible: root.connected }
+
+    // EQ
+    ColumnLayout {
+        Layout.fillWidth: true
+        visible: root.connected
+        spacing: Kirigami.Units.smallSpacing
+
+        RowLayout {
+            Layout.fillWidth: true
+            PlasmaComponents.Label { text: "Equalizer"; font.bold: true; Layout.fillWidth: true }
+            PlasmaComponents.Label {
+                text: "Volume EQ"
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.7
+            }
+            PlasmaComponents.Switch {
+                checked: root.volumeEq
+                onToggled: {
+                    root.runSet("set volume-eq " + (checked ? "true" : "false"));
+                    root.volumeEq = checked;
+                }
+            }
+        }
+
+        Repeater {
+            model: [
+                { label: "Low Bass",     index: 0 },
+                { label: "Bass",         index: 1 },
+                { label: "Mid",          index: 2 },
+                { label: "Treble",       index: 3 },
+                { label: "Upper Treble", index: 4 },
+            ]
+
+            RowLayout {
+                required property var modelData
+                Layout.fillWidth: true
+
+                PlasmaComponents.Label {
+                    text: modelData.label
+                    Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+                }
+
+                PlasmaComponents.Slider {
+                    id: eqSlider
+                    Layout.fillWidth: true
+                    from: -6.0
+                    to: 6.0
+                    stepSize: 0.5
+                    value: root.eq[modelData.index] ?? 0.0
+                    onMoved: eqDebounce.restart()
+
+                    Timer {
+                        id: eqDebounce
+                        interval: 600
+                        onTriggered: {
+                            var bands = root.eq.slice();
+                            bands[modelData.index] = eqSlider.value;
+                            root.setEq(bands);
+                        }
+                    }
+                }
+
+                PlasmaComponents.Label {
+                    text: (eqSlider.value >= 0 ? "+" : "") + eqSlider.value.toFixed(1)
+                    Layout.minimumWidth: Kirigami.Units.gridUnit * 2.5
+                    horizontalAlignment: Text.AlignRight
+                }
+            }
+        }
+    }
+
     Item { Layout.fillHeight: true }
 }

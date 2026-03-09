@@ -18,6 +18,8 @@ PlasmoidItem {
     readonly property int maxFails: 3
     property string btCard: ""
     property string btProfile: ""
+    property var eq: [0.0, 0.0, 0.0, 0.0, 0.0]
+    property bool volumeEq: false
 
     readonly property bool isHeadsetMode: btProfile.startsWith("headset")
     readonly property string preferredA2dp: "a2dp-sink-opus_g"
@@ -73,6 +75,15 @@ PlasmoidItem {
 
                 var ohdMatch = stdout.match(/^OHD=(.+)$/m);
                 if (ohdMatch) ohd = ohdMatch[1].trim().toLowerCase() === "true";
+
+                var eqMatch = stdout.match(/^EQ=\[([^\]]+)\]/m);
+                if (eqMatch) {
+                    var vals = eqMatch[1].split(",").map(function(v) { return parseFloat(v.trim()); });
+                    if (vals.length === 5) eq = vals;
+                }
+
+                var veqMatch = stdout.match(/^VOLUMEEQ=(.+)$/m);
+                if (veqMatch) volumeEq = veqMatch[1].trim().toLowerCase() === "true";
             }
 
             disconnectSource(source);
@@ -118,8 +129,6 @@ PlasmoidItem {
         connectedSources: []
         onNewData: function(source, data) {
             disconnectSource(source);
-            // Re-query ANC state after a set command
-            Qt.callLater(refresh);
         }
     }
 
@@ -127,9 +136,16 @@ PlasmoidItem {
         dsSet.connectSource("pbpctrl " + args);
     }
 
+    function setEq(bands) {
+        eq = bands;
+        runSet("set eq " + bands[0].toFixed(1) + " " + bands[1].toFixed(1) + " " +
+               bands[2].toFixed(1) + " " + bands[3].toFixed(1) + " " + bands[4].toFixed(1));
+    }
+
     readonly property string refreshCmd:
         "sh -c 'echo ANC=$(pbpctrl get anc); pbpctrl show battery; " +
-        "echo SPEECH=$(pbpctrl get speech-detection); echo OHD=$(pbpctrl get ohd)'"
+        "echo SPEECH=$(pbpctrl get speech-detection); echo OHD=$(pbpctrl get ohd); " +
+        "echo EQ=$(pbpctrl get eq); echo VOLUMEEQ=$(pbpctrl get volume-eq)'"
 
     readonly property string profileCmd:
         "pactl list cards | grep -E 'Name: bluez_card|Active Profile:'"
