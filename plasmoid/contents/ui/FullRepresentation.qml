@@ -60,7 +60,7 @@ ColumnLayout {
         PlasmaComponents.Label { text: "R:"; font.bold: true }
         PlasmaComponents.Label { text: root.battery.right >= 0 ? root.battery.right + "%" : "—" }
         PlasmaComponents.Label { text: "Case:"; font.bold: true }
-        PlasmaComponents.Label { text: root.battery.case >= 0 ? root.battery.case + "%" : "—" }
+        PlasmaComponents.Label { text: root.battery.caseLevel >= 0 ? root.battery.caseLevel + "%" : "—" }
     }
 
     Kirigami.Separator { Layout.fillWidth: true; visible: root.connected }
@@ -98,7 +98,7 @@ ColumnLayout {
                     flat: root.ancState !== modelData.value
                     highlighted: root.ancState === modelData.value
                     onClicked: {
-                        root.runPbpctrl("set anc " + modelData.value, function() {
+                        root.runSet("set anc " + modelData.value, function() {
                             root.ancState = modelData.value;
                         });
                     }
@@ -121,7 +121,7 @@ ColumnLayout {
             PlasmaComponents.Switch {
                 checked: root.speechDetection
                 onToggled: {
-                    root.runPbpctrl("set speech-detection " + (checked ? "true" : "false"), null);
+                    root.runSet("set speech-detection " + (checked ? "true" : "false"), null);
                     root.speechDetection = checked;
                 }
             }
@@ -133,7 +133,7 @@ ColumnLayout {
             PlasmaComponents.Switch {
                 checked: root.ohd
                 onToggled: {
-                    root.runPbpctrl("set ohd " + (checked ? "true" : "false"), null);
+                    root.runSet("set ohd " + (checked ? "true" : "false"), null);
                     root.ohd = checked;
                 }
             }

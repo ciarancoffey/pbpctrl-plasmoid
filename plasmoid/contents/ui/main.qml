@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.kirigami as Kirigami
 
@@ -9,17 +10,17 @@ PlasmoidItem {
     id: root
 
     property string ancState: "unknown"
-    property var battery: ({ left: -1, right: -1, case: -1 })
+    property var battery: ({ left: -1, right: -1, caseLevel: -1 })
     property bool speechDetection: false
     property bool ohd: false
     property bool connected: false
+    property int failCount: 0
+    readonly property int maxFails: 3
 
     preferredRepresentation: compactRepresentation
 
     Plasmoid.icon: "audio-headphones"
     Plasmoid.title: "Pixel Buds Pro"
-    Plasmoid.toolTipMainText: "Pixel Buds Pro"
-    Plasmoid.toolTipSubText: connected ? ancStateLabel(ancState) : "Not connected"
 
     function ancStateLabel(state) {
         switch (state) {
@@ -31,53 +32,74 @@ PlasmoidItem {
         }
     }
 
-    function runPbpctrl(args, callback) {
-        var proc = Qt.createQmlObject('import QtQuick; import org.kde.plasma.core as PlasmaCore; PlasmaCore.DataSource { engine: "executable" }', root);
-        proc.connectSource("pbpctrl " + args);
-        proc.onNewData.connect(function(source, data) {
-            if (callback) callback(data["stdout"], data["stderr"]);
-            proc.disconnectSource(source);
-            proc.destroy();
-        });
+    // Single DataSource runs all queries sequentially in one shell command
+    P5Support.DataSource {
+        id: dsRefresh
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            var stdout = data["stdout"] || "";
+            var stderr = data["stderr"] || "";
+
+            if (stderr !== "" || stdout === "") {
+                failCount += 1;
+                if (failCount >= maxFails) connected = false;
+            } else {
+                failCount = 0;
+                connected = true;
+
+                // ANC: line "ANC=aware"
+                var anc = stdout.match(/^ANC=(.+)$/m);
+                if (anc) ancState = anc[1].trim().toLowerCase();
+
+                // Battery
+                var left  = stdout.match(/left\s+bud\s*:\s*(\d+)/i);
+                var right = stdout.match(/right\s+bud\s*:\s*(\d+)/i);
+                var cas   = stdout.match(/case\s*:\s*(\d+)/i);
+                battery = {
+                    left:      left  ? parseInt(left[1])  : -1,
+                    right:     right ? parseInt(right[1]) : -1,
+                    caseLevel: cas   ? parseInt(cas[1])   : -1
+                };
+
+                // Toggles
+                var speech = stdout.match(/^SPEECH=(.+)$/m);
+                if (speech) speechDetection = speech[1].trim().toLowerCase() === "true";
+
+                var ohdMatch = stdout.match(/^OHD=(.+)$/m);
+                if (ohdMatch) ohd = ohdMatch[1].trim().toLowerCase() === "true";
+            }
+
+            disconnectSource(source);
+        }
     }
 
+    // Separate DataSource for fire-and-forget set commands
+    P5Support.DataSource {
+        id: dsSet
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            disconnectSource(source);
+            // Re-query ANC state after a set command
+            Qt.callLater(refresh);
+        }
+    }
+
+    function runSet(args) {
+        dsSet.connectSource("pbpctrl " + args);
+    }
+
+    readonly property string refreshCmd:
+        "sh -c 'echo ANC=$(pbpctrl get anc); pbpctrl show battery; " +
+        "echo SPEECH=$(pbpctrl get speech-detection); echo OHD=$(pbpctrl get ohd)'"
+
     function refresh() {
-        // Get ANC state
-        runPbpctrl("get anc", function(stdout, stderr) {
-            if (stderr === "") {
-                connected = true;
-                ancState = stdout.trim().toLowerCase();
-            } else {
-                connected = false;
-                ancState = "unknown";
-            }
-        });
-
-        // Get battery
-        runPbpctrl("show battery", function(stdout) {
-            var left = stdout.match(/left[^\d]*(\d+)/i);
-            var right = stdout.match(/right[^\d]*(\d+)/i);
-            var cas = stdout.match(/case[^\d]*(\d+)/i);
-            battery = {
-                left:  left  ? parseInt(left[1])  : -1,
-                right: right ? parseInt(right[1]) : -1,
-                case:  cas   ? parseInt(cas[1])   : -1
-            };
-        });
-
-        // Get speech detection
-        runPbpctrl("get speech-detection", function(stdout) {
-            speechDetection = stdout.trim().toLowerCase() === "true";
-        });
-
-        // Get on-head detection
-        runPbpctrl("get ohd", function(stdout) {
-            ohd = stdout.trim().toLowerCase() === "true";
-        });
+        dsRefresh.connectSource(refreshCmd);
     }
 
     Timer {
-        interval: 30000
+        interval: 10000
         running: true
         repeat: true
         onTriggered: refresh()

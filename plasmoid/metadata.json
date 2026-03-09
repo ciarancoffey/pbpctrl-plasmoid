@@ -15,6 +15,7 @@
         "Version": "0.1.0",
         "Website": "https://github.com/ciarancoffey/pbpctrl-plasmoid"
     },
+    "KPackageStructure": "Plasma/Applet",
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-StandAloneApp": false
 }
