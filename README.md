@@ -2,6 +2,8 @@
 
 A KDE Plasma 6 system tray plasmoid for controlling [Google Pixel Buds Pro](https://github.com/qzed/pbpctrl) on Linux.
 
+![Pixel Buds Pro Control plasmoid](gui.png)
+
 ## Features
 
 - **ANC mode** — Off / Active / Aware / Adaptive
@@ -63,6 +65,10 @@ plasmashell --replace &
 > **Note:** A plasmashell restart is required whenever a plasmoid is installed or updated system-wide. This is a Plasma limitation — it does not hot-reload from `/usr/share/plasma/plasmoids/`.
 
 The widget will then appear automatically in the **Status and Notifications** section of the system tray when your Pixel Buds Pro are connected. It auto-hides when they are not.
+
+If it doesn't appear, right-click the system tray → **Configure System Tray** → **Extra Items** and enable **Pixel Buds Pro Control**:
+
+![Enabling the widget in system tray settings](enable.png)
 
 ## Usage
 
