@@ -17,8 +17,6 @@ PlasmoidItem {
     property int failCount: 0
     readonly property int maxFails: 3
 
-    preferredRepresentation: compactRepresentation
-
     Plasmoid.icon: "audio-headphones"
     Plasmoid.title: "Pixel Buds Pro"
 
@@ -107,6 +105,5 @@ PlasmoidItem {
 
     Component.onCompleted: refresh()
 
-    compactRepresentation: CompactRepresentation {}
     fullRepresentation: FullRepresentation {}
 }
