@@ -109,6 +109,31 @@ ColumnLayout {
 
     Kirigami.Separator { Layout.fillWidth: true; visible: root.connected }
 
+    // Audio profile toggle (A2DP vs Headset)
+    RowLayout {
+        Layout.fillWidth: true
+        visible: root.btCard !== ""
+
+        Kirigami.Icon {
+            source: root.isHeadsetMode ? "mic-on" : "audio-headphones"
+            implicitWidth: Kirigami.Units.iconSizes.small
+            implicitHeight: Kirigami.Units.iconSizes.small
+        }
+
+        PlasmaComponents.Label {
+            text: root.isHeadsetMode ? "Headset (with mic)" : "Playback (high quality)"
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Button {
+            text: root.isHeadsetMode ? "Switch to Playback" : "Switch to Headset"
+            icon.name: root.isHeadsetMode ? "audio-headphones" : "mic-on"
+            onClicked: root.toggleProfile()
+        }
+    }
+
+    Kirigami.Separator { Layout.fillWidth: true; visible: root.connected }
+
     // Toggles
     ColumnLayout {
         Layout.fillWidth: true

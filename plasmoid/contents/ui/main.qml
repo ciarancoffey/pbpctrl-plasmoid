@@ -16,6 +16,12 @@ PlasmoidItem {
     property bool connected: false
     property int failCount: 0
     readonly property int maxFails: 3
+    property string btCard: ""
+    property string btProfile: ""
+
+    readonly property bool isHeadsetMode: btProfile.startsWith("headset")
+    readonly property string preferredA2dp: "a2dp-sink-opus_g"
+    readonly property string preferredHfp: "headset-head-unit"
 
     Plasmoid.icon: "audio-headphones"
     Plasmoid.title: "Pixel Buds Pro"
@@ -72,6 +78,38 @@ PlasmoidItem {
         }
     }
 
+    // DataSource for reading BT card profile via pactl (local, no BT channel)
+    P5Support.DataSource {
+        id: dsProfileRead
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            var stdout = data["stdout"] || "";
+            var cardMatch   = stdout.match(/Name:\s+(bluez_card\S+)/);
+            var profileMatch = stdout.match(/Active Profile:\s+(\S+)/);
+            if (cardMatch)   btCard    = cardMatch[1].trim();
+            if (profileMatch) btProfile = profileMatch[1].trim();
+            disconnectSource(source);
+        }
+    }
+
+    // DataSource for setting BT card profile via pactl
+    P5Support.DataSource {
+        id: dsProfileSet
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            disconnectSource(source);
+        }
+    }
+
+    function toggleProfile() {
+        if (btCard === "") return;
+        var target = isHeadsetMode ? preferredA2dp : preferredHfp;
+        btProfile = target;  // optimistic update so button flips immediately
+        dsProfileSet.connectSource("pactl set-card-profile " + btCard + " " + target);
+    }
+
     // Separate DataSource for fire-and-forget set commands
     P5Support.DataSource {
         id: dsSet
@@ -92,8 +130,14 @@ PlasmoidItem {
         "sh -c 'echo ANC=$(pbpctrl get anc); pbpctrl show battery; " +
         "echo SPEECH=$(pbpctrl get speech-detection); echo OHD=$(pbpctrl get ohd)'"
 
+    readonly property string profileCmd:
+        "pactl list cards | grep -E 'Name: bluez_card|Active Profile:'"
+
     function refresh() {
+        dsRefresh.disconnectSource(refreshCmd);
         dsRefresh.connectSource(refreshCmd);
+        dsProfileRead.disconnectSource(profileCmd);
+        dsProfileRead.connectSource(profileCmd);
     }
 
     Timer {
