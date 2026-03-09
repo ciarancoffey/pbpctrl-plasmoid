@@ -20,6 +20,7 @@ PlasmoidItem {
     property string btProfile: ""
     property var eq: [0.0, 0.0, 0.0, 0.0, 0.0]
     property bool volumeEq: false
+    property bool multipoint: false
 
     readonly property bool isHeadsetMode: btProfile.startsWith("headset")
     readonly property string preferredA2dp: "a2dp-sink-opus_g"
@@ -84,6 +85,9 @@ PlasmoidItem {
 
                 var veqMatch = stdout.match(/^VOLUMEEQ=(.+)$/m);
                 if (veqMatch) volumeEq = veqMatch[1].trim().toLowerCase() === "true";
+
+                var mpMatch = stdout.match(/^MULTIPOINT=(.+)$/m);
+                if (mpMatch) multipoint = mpMatch[1].trim().toLowerCase() === "true";
             }
 
             disconnectSource(source);
@@ -145,7 +149,8 @@ PlasmoidItem {
     readonly property string refreshCmd:
         "sh -c 'echo ANC=$(pbpctrl get anc); pbpctrl show battery; " +
         "echo SPEECH=$(pbpctrl get speech-detection); echo OHD=$(pbpctrl get ohd); " +
-        "echo EQ=$(pbpctrl get eq); echo VOLUMEEQ=$(pbpctrl get volume-eq)'"
+        "echo EQ=$(pbpctrl get eq); echo VOLUMEEQ=$(pbpctrl get volume-eq); " +
+        "echo MULTIPOINT=$(pbpctrl get multipoint)'"
 
     readonly property string profileCmd:
         "pactl list cards | grep -E 'Name: bluez_card|Active Profile:'"

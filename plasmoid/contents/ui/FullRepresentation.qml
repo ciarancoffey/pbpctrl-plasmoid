@@ -158,8 +158,20 @@ ColumnLayout {
             PlasmaComponents.Switch {
                 checked: root.ohd
                 onToggled: {
-                    root.runSet("set ohd " + (checked ? "true" : "false"), null);
+                    root.runSet("set ohd " + (checked ? "true" : "false"));
                     root.ohd = checked;
+                }
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            PlasmaComponents.Label { text: "Multipoint (Two devices)"; Layout.fillWidth: true }
+            PlasmaComponents.Switch {
+                checked: root.multipoint
+                onToggled: {
+                    root.runSet("set multipoint " + (checked ? "true" : "false"));
+                    root.multipoint = checked;
                 }
             }
         }
