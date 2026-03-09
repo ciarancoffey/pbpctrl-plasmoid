@@ -25,6 +25,7 @@ PlasmoidItem {
 
     Plasmoid.icon: "audio-headphones"
     Plasmoid.title: "Pixel Buds Pro"
+    Plasmoid.status: connected ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.PassiveStatus
 
     function ancStateLabel(state) {
         switch (state) {
