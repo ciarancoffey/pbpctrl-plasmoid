@@ -17,7 +17,7 @@ optdepends=(
 makedepends=('git')
 provides=('pbpctrl-plasmoid')
 conflicts=('pbpctrl-plasmoid')
-source=('pbpctrl-plasmoid::git+https://github.com/ciarancoffey/pbpctrl-plasmoid.git')
+source=('pbpctrl-plasmoid::git+https://github.com/ciarancoffey/pbpctrl-plasmoid.git#branch=main')
 sha256sums=('SKIP')
 
 pkgver() {
